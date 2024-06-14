@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Django's command-line utility for administrative tasks."""
 import os
+import django.core.management.commands.runserver as runserver
 import sys
 
 
@@ -20,3 +21,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+runserver.DEFAULT_PORT = os.environ.get('PORT', '8000')

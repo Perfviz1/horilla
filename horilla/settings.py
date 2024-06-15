@@ -18,6 +18,13 @@ import environ
 from django.contrib.messages import constants as messages
 
 
+
+# Ensure you allow all hosts, or specify your domain if known
+ALLOWED_HOSTS = ['*']  # For development. Change this in production.
+
+# Optional: Use the port from environment variable if needed elsewhere
+PORT = os.getenv('PORT', '8000')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -249,11 +256,3 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-
-import os
-
-# Ensure you allow all hosts, or specify your domain if known
-ALLOWED_HOSTS = ['*']  # For development. Change this in production.
-
-# Optional: Use the port from environment variable if needed elsewhere
-PORT = os.getenv('PORT', '8000')

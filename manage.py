@@ -33,7 +33,7 @@ if __name__ == '__main__':
             "forget to activate a virtual environment?"
         ) from exc
 
-    port = os.environ.get('PORT', '8000')
+    port = os.environ.get('PORT', '10000')
     sys.argv = ['manage.py', 'runserver', '0.0.0.0:' + port]
     
     execute_from_command_line(sys.argv)

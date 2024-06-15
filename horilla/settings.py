@@ -144,6 +144,16 @@ else:
         }
     }
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'perfvizhr',
+        'USER': 'perfvizhr_user',
+        'PASSWORD': 'jDBw6ZbNBa09pIk7Uguznh1d1kHcrZXO',
+        'HOST': 'dpg-cpmsrgeehbks73fuh3ng-a',
+        'PORT': '5432',
+    }
+}
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 

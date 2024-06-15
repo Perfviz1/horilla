@@ -11,6 +11,7 @@ from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 
 from base.methods import reload_queryset
+from base.thread_local_middleware import _thread_locals
 from horilla_views.templatetags.generic_template_filters import getattribute
 
 FILTER_FOR_DBFIELD_DEFAULTS[models.ForeignKey][
@@ -105,11 +106,17 @@ class HorillaFilterSet(FilterSet):
     HorillaFilterSet
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = getattr(_thread_locals, "request", None)
+        if request:
+            setattr(request, "is_filtering", True)
+
     def search_in(self, queryset, name, value):
         """
         Search in generic method for filter field
         """
-        search = value.lower()
+        search = self.data.get("search", "")
         search_field = self.data.get("search_field")
         if not search_field:
             search_field = self.filters[name].field_name

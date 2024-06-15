@@ -22,7 +22,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings')
     try:
@@ -34,8 +33,7 @@ if __name__ == '__main__':
             "forget to activate a virtual environment?"
         ) from exc
 
-    # Get the port from the environment variable
     port = os.environ.get('PORT', '8000')
-    sys.argv += ['runserver', '0.0.0.0:' + port]
-
+    sys.argv = ['manage.py', 'runserver', '0.0.0.0:' + port]
+    
     execute_from_command_line(sys.argv)

@@ -36,7 +36,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from attendance.methods.group_by import group_by_queryset
 from base.backends import ConfiguredEmailBackend
 from base.context_processors import check_candidate_self_tracking
 from base.methods import export_data, generate_pdf, get_key_instances
@@ -49,6 +48,7 @@ from horilla.decorators import (
     login_required,
     permission_required,
 )
+from horilla.group_by import group_by_queryset
 from notifications.signals import notify
 from recruitment.decorators import manager_can_enter, recruitment_manager_can_enter
 from recruitment.filters import (
@@ -562,6 +562,36 @@ def change_candidate_stage(request):
     """
     This method is used to update candidates stage
     """
+    if request.method == "POST":
+        canIds = request.POST["canIds"]
+        stage_id = request.POST["stageId"]
+        if request.GET.get("bulk") == "True":
+            canIds = json.loads(canIds)
+            for cand_id in canIds:
+                try:
+                    candidate = Candidate.objects.get(id=cand_id)
+                    stage = Stage.objects.filter(
+                        recruitment_id=candidate.recruitment_id, id=stage_id
+                    ).first()
+                    if stage:
+                        candidate.stage_id = stage
+                        candidate.save()
+                        messages.success(request, "Candidate stage updated")
+                except Candidate.DoesNotExist:
+                    messages.error(request, _("Candidate not found."))
+        else:
+            try:
+                candidate = Candidate.objects.get(id=canIds)
+                stage = Stage.objects.filter(
+                    recruitment_id=candidate.recruitment_id, id=stage_id
+                ).first()
+                if stage:
+                    candidate.stage_id = stage
+                    candidate.save()
+                    messages.success(request, "Candidate stage updated")
+            except Candidate.DoesNotExist:
+                messages.error(request, _("Candidate not found."))
+        return HttpResponse()
     candidate_id = request.GET["candidate_id"]
     stage_id = request.GET["stage_id"]
     candidate = Candidate.objects.get(id=candidate_id)
@@ -572,7 +602,6 @@ def change_candidate_stage(request):
         candidate.stage_id = stage
         candidate.save()
         messages.success(request, "Candidate stage updated")
-
     return stage_component(request)
 
 

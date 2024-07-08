@@ -28,7 +28,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from attendance.forms import AttendanceValidationConditionForm
-from attendance.methods.group_by import group_by_queryset
 from attendance.models import AttendanceValidationCondition, GraceTime
 from base.backends import ConfiguredEmailBackend
 from base.decorators import (
@@ -137,6 +136,7 @@ from horilla.decorators import (
     manager_can_enter,
     permission_required,
 )
+from horilla.group_by import group_by_queryset
 from horilla_audit.forms import HistoryTrackingFieldsForm
 from horilla_audit.models import AccountBlockUnblock, AuditTag, HistoryTrackingFields
 from notifications.base.models import AbstractNotification
@@ -147,6 +147,8 @@ from payroll.models.models import EncashmentGeneralSettings
 from payroll.models.tax_models import PayrollSettings
 from pms.models import KeyResult
 from recruitment.models import RejectReason
+
+
 
 
 def custom404(request):
@@ -473,9 +475,6 @@ def employee_workinfo_complete(request):
         "salary_hour",
     ]
     search = request.GET.get("search", "")
-    print("----------------")
-    print(search)
-    print("----------------")
     for employee in EmployeeWorkInformation.objects.filter(
         employee_id__employee_first_name__icontains=search, employee_id__is_active=True
     ):
@@ -917,6 +916,45 @@ def object_duplicate(request, obj_id, **kwargs):
         "duplicate": True,
     }
     return render(request, template, context)
+
+
+@login_required
+@hx_request_required
+@duplicate_permission()
+def add_remove_dynamic_fields(request, **kwargs):
+    if request.method == "POST":
+        model = kwargs["model"]
+        form_class = kwargs["form_class"]
+        template = kwargs["template"]
+        empty_label = kwargs["empty_label"]
+        field_name_pre = kwargs["field_name_pre"]
+        hx_target = request.META.get("HTTP_HX_TARGET")
+        if hx_target:
+            field_counts = int(hx_target.split("_")[-1]) + 1
+            next_hx_target = f"{hx_target.rsplit('_', 1)[0]}_{field_counts}"
+            form = form_class()
+            field_name = f"{field_name_pre}{field_counts}"
+            form.fields[field_name] = forms.ModelChoiceField(
+                queryset=model.objects.all(),
+                widget=forms.Select(
+                    attrs={
+                        "class": "oh-select oh-select-2 mb-3",
+                        "name": field_name,
+                        "id": f"id_{field_name}",
+                    }
+                ),
+                required=False,
+                empty_label=empty_label,
+            )
+            context = {
+                "field_counts": field_counts,
+                "field_html": form[field_name].as_widget(),
+                "current_hx_target": hx_target,
+                "next_hx_target": next_hx_target,
+            }
+            field_html = render_to_string(template, context)
+            return HttpResponse(field_html)
+    return HttpResponse()
 
 
 @login_required
@@ -2023,7 +2061,8 @@ def rotating_shift_create(request):
             form = RotatingShiftForm()
             messages.success(request, _("Rotating shift created."))
             return HttpResponse("<script>window.location.reload();</script>")
-
+    else:
+        form = RotatingShiftForm()
     return render(
         request,
         "base/rotating_shift/htmx/rotating_shift_form.html",
@@ -2454,13 +2493,16 @@ def get_models_in_app(app_name):
         return []
 
 
+#Temporary fix view was not working 
 @login_required
 @manager_can_enter("auth.view_permission")
 def employee_permission_assign(request):
     """
     This method is used to assign permissions to employee user
     """
-
+    
+    
+    
     context = {}
     template = "base/auth/permission.html"
     if request.GET.get("profile_tab"):

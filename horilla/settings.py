@@ -133,7 +133,7 @@ else:
             'NAME': 'perfvizhr',
             'USER': 'perfvizhr_user',
             'PASSWORD': 'jDBw6ZbNBa09pIk7Uguznh1d1kHcrZXO',
-            'HOST': 'dpg-cpmsrgeehbks73fuh3ng-a',
+            'HOST': 'dpg-cpmsrgeehbks73fuh3ng-a.singapore-postgres.render.com',
             'PORT': '5432',
         }
     }
